@@ -40,3 +40,9 @@ application {
     // Define the main class for the application.
     mainClass = 'aoc2021.AppKt'
 }
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}

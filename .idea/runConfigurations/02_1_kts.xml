@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="02.1.kts" type="KotlinStandaloneScriptRunConfigurationType" nameIsGenerated="true">
+    <module name="python" />
+    <option name="REDIRECT_INPUT" value="true" />
+    <option name="INPUT_FILE" value="input.txt" />
+    <shortenClasspath name="NONE" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/02" />
+    <option name="filePath" value="$PROJECT_DIR$/kscript/02.1.kts" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
