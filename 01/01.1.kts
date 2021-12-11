@@ -1,1 +1,0 @@
-../kotlin/kscript/01.1.kts
