@@ -1,3 +1,5 @@
+//  Snailfish (https://adventofcode.com/2021/day/18)
+
 package io.prfxn.aoc2021
 
 private object Day18 {

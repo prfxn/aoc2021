@@ -4,7 +4,6 @@ package io.prfxn.aoc2021
 
 import java.util.PriorityQueue
 
-private typealias CP = Pair<Int, Int>
 
 fun main() {
 

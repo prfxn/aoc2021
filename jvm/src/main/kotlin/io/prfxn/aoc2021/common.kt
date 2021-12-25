@@ -42,3 +42,7 @@ fun <T> List<T>.permutations(r: Int): List<List<T>> =
     } else {
         emptyList()
     }
+
+typealias CP = Pair<Int, Int>
+val CP.row get() = first
+val CP.col get() = second

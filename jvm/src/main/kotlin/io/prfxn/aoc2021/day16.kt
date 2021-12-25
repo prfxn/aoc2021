@@ -1,3 +1,5 @@
+// Packet Decoder (https://adventofcode.com/2021/day/16)
+
 package io.prfxn.aoc2021
 
 private object Day16 {

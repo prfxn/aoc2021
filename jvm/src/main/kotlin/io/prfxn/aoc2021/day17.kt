@@ -1,3 +1,5 @@
+//  Trick Shot (https://adventofcode.com/2021/day/17)
+
 package io.prfxn.aoc2021
 
 import kotlin.math.max
@@ -36,7 +38,7 @@ fun main() {
         }
 
     // judgement call on those ranges
-    
+
     println(  // answer 1
         (0..1000).flatMap { x -> (-1000..1000).map { y -> x to y } }
             .mapNotNull { (x, y) -> getMaxY(x, y) }
