@@ -2,16 +2,12 @@
 
 package io.prfxn.aoc2021
 
-import java.util.PriorityQueue
-
-
 fun main() {
 
     fun getMinRisk(rlm: List<List<Int>>, start: CP, end: CP): Int {
 
-        val riskAndPrevOf = mutableMapOf(start to (0 to start))
-        val nextPq =
-            PriorityQueue<CP> { a, b -> riskAndPrevOf[a]!!.first - riskAndPrevOf[b]!!.first }.apply { add(start) }
+        val riskAndPrevOf = PriorityMap(sequenceOf(start to (0 to start))) { (a, _), (b, _) -> a - b }
+
         val visited = mutableSetOf<CP>()
 
         fun getUnvisitedNeighbors(cp: CP) =
@@ -21,21 +17,21 @@ fun main() {
                     .filterNot(visited::contains)
             }
 
-        while (end !in visited) {
-            val here = nextPq.remove()
-            val (riskToHere, _) = riskAndPrevOf[here]!!
-            getUnvisitedNeighbors(here).forEach { next ->
-                val (nr, nc) = next
-                val riskToNextViaHere = riskToHere + rlm[nr][nc]
-                val seen = next in riskAndPrevOf
-                if (!seen || riskToNextViaHere < riskAndPrevOf[next]!!.first)
-                    riskAndPrevOf[next] = riskToNextViaHere to here
-                if (!seen) nextPq.add(next)
+        return generateSequence {
+            if (end in visited) null
+            else {
+                val (here, riskAndVia) = riskAndPrevOf.extract()
+                val (riskToHere, _) = riskAndVia
+                getUnvisitedNeighbors(here).forEach { next ->
+                    val (nr, nc) = next
+                    val riskToNextViaHere = riskToHere + rlm[nr][nc]
+                    if (next !in riskAndPrevOf || riskToNextViaHere < riskAndPrevOf[next]!!.first)
+                        riskAndPrevOf[next] = riskToNextViaHere to here
+                }
+                visited.add(here)
+                riskToHere
             }
-            visited.add(here)
-        }
-
-        return riskAndPrevOf[end]!!.first
+        }.last()
     }
 
     fun getMinRisk(rlm: List<List<Int>>) = getMinRisk(rlm, 0 to 0, (rlm.size - 1) to (rlm[0].size - 1))
