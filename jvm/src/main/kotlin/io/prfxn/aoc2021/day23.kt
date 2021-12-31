@@ -21,29 +21,39 @@ fun main() {
             .toMap()
     }
 
-    val startState = textResourceReader("input/23.txt").useLines { lines -> readInput(lines) }
-
-    val roomCellsByPod =
+    fun getRoomCellsByPod(state: Map<CP, Char>) =
         pods.asSequence().zip(
-            startState.keys
+            state.keys
                 .groupBy { (_, c) -> c }
                 .asSequence()
                 .mapNotNull { (_, cells) ->
-                    if (cells.size == 3)
+                    if (cells.size >= 3)
                         cells.sortedBy { it.first }.drop(1)
                     else null
                 }
         ).toMap()
 
-    val roomCells = roomCellsByPod.values.flatten().toSet()
-    val entrywayCells = startState.keys.filter { (r, c) -> (r to c) !in roomCells &&  ((r + 1) to c) in roomCells }.toSet()
-    val hallwayCells = startState.keys.filter { it !in roomCells && it !in entrywayCells }.toSet()
+    fun getCellGroups(state: Map<CP, Char>, roomCellsByPod: Map<Char, List<CP>>): List<Set<CP>> {
+        val roomCells = roomCellsByPod.values.flatten().toSet()
+        val entrywayCells =
+            state.keys.filter { (r, c) -> (r to c) !in roomCells &&  ((r + 1) to c) in roomCells }.toSet()
+        val hallwayCells =
+            state.keys.filter { it !in roomCells && it !in entrywayCells }.toSet()
+        return listOf(
+            roomCells,
+            entrywayCells,
+            hallwayCells
+        )
+    }
 
     fun printState(state: Map<CP, Char> ) {
+        val roomCellsByPod = getRoomCellsByPod(state)
         println("#############")
         println("#${(1..11).map { state[1 to it] }.joinToString("")}#")
         println("###" + pods.map { state[roomCellsByPod[it]!![0]] }.joinToString("#") + "###")
-        println("  #" + pods.map { state[roomCellsByPod[it]!![1]] }.joinToString("#") + "#")
+        (1 until roomCellsByPod.values.first().size).forEach { r ->
+            println("  #" + pods.map { state[roomCellsByPod[it]!![r]] }.joinToString("#") + "#")
+        }
         println("  #########")
     }
 
@@ -60,23 +70,24 @@ fun main() {
 
     fun getLeastEnergy(startState: Map<CP, Char>, endState: Map<CP, Char>): Int {
 
+        val roomCellsByPod = getRoomCellsByPod(startState)
+        val (roomCells, entrywayCells, hallwayCells) = getCellGroups(startState, roomCellsByPod)
+
         fun allowRoomExit(state: Map<CP, Char>, cell: CP): Boolean {
             val pod = state[cell]!!
             val podRoomCells = roomCellsByPod[pod]!!
             return cell !in podRoomCells ||
-                    cell == podRoomCells[0] && state[podRoomCells[1]] != pod
+                    podRoomCells.filter { (r, _) -> r > cell.first }.any { state[it] != pod }
         }
 
         fun allowRoomEntry(state: Map<CP, Char>, cell: CP, pod: Char): Boolean {
             val podRoomCells = roomCellsByPod[pod]!!
-            return if (cell == podRoomCells[0])
-                state[podRoomCells[1]] == pod
-            else
-                cell == podRoomCells[1]
+            return cell in podRoomCells &&
+                    podRoomCells.filter { (r, _) -> r > cell.first }.all { state[it] == pod }
         }
 
         val energyAndPrevOf =
-            PriorityMap(sequenceOf(startState to (0 to startState))) { (a, _), (b, _) -> a - b}
+            PriorityMap(sequenceOf(startState to (0 to startState))) { (a, _), (b, _) -> a - b }
         val explored = mutableSetOf<Map<CP, Char>>()
 
         // get unexplored next states and corresponding transition energies
@@ -136,10 +147,12 @@ fun main() {
                 explored.add(here)
                 energy
             }
-        }/*.onEach(::println)*/.last()
+        }.onEach(::println).last()
     }
 
-    val testState =
+    val startState = textResourceReader("input/23.txt").useLines { lines -> readInput(lines) }
+
+    /*val testState =
         readInput(
             """
             #############
@@ -148,14 +161,36 @@ fun main() {
               #B#C#D#C#
               #########
             """.trimIndent().splitToSequence("\n")
-        )
+        )*/
 
-    val endState = (
-            (hallwayCells.asSequence() + entrywayCells.asSequence()).map { it to '.' } +
-                    roomCellsByPod.asSequence().flatMap { (pod, cells) ->
-                        cells.asSequence().map { cell -> cell to pod }
-                    }
+    fun getEndState(state: Map<CP, Char>): Map<CP, Char> {
+        val roomCellsByPod = getRoomCellsByPod(state)
+        val (_, entrywayCells, hallwayCells) = getCellGroups(state, roomCellsByPod)
+        return (
+            (hallwayCells.asSequence() + entrywayCells.asSequence())
+                .map { it to '.' } +
+            roomCellsByPod.asSequence()
+                .flatMap { (pod, cells) -> cells.asSequence().map { cell -> cell to pod } }
         ).toMap()
+    }
 
-    println(getLeastEnergy(startState, endState))
+    fun getAltStartState(startState: Map<CP, Char>): Map<CP, Char> =
+        startState +
+            sequenceOf("DCBA", "DBAC")
+                .flatMapIndexed { r, str ->
+                    str.mapIndexed { c, char -> (r to c) to char }
+                }
+                .map { (cell, char) ->
+                    val (r, c) = cell
+                    (r + 3 to  c * 2 + 3) to char
+                }
+                .toMap() +
+            startState.keys.asSequence()
+                .filter { (r, _) -> r == 3 }
+                .map { (r, c) -> (r + 2 to c) to startState[r to c]!! }
+                .toMap()
+
+    val altStateState = getAltStartState(startState)
+    val altEndState = getEndState(altStateState)
+    println(getLeastEnergy(altStateState, altEndState))
 }
