@@ -2,9 +2,7 @@
 
 package io.prfxn.aoc2021
 
-
 fun main() {
-
     val pods = ('A'..'D').toList()
     val energiesByPod = pods.asSequence().zip(generateSequence(1) { it * 10 }).toMap()
 
@@ -137,31 +135,14 @@ fun main() {
                 val (energy, _) = energyAndPrev
                 getNextFrom(here).forEach { (nextState, transitionEnergy) ->
                     val nextEnergy = energy + transitionEnergy
-                    if (here == startState) {
-                        println("$energy + $transitionEnergy = $nextEnergy")
-                        printState(nextState)
-                    }
                     if (nextState !in energyAndPrevOf || nextEnergy < energyAndPrevOf[nextState]!!.first)
                         energyAndPrevOf[nextState] = nextEnergy to here
                 }
                 explored.add(here)
                 energy
             }
-        }.onEach(::println).last()
+        }.last()
     }
-
-    val startState = textResourceReader("input/23.txt").useLines { lines -> readInput(lines) }
-
-    /*val testState =
-        readInput(
-            """
-            #############
-            #...........#
-            ###A#D#A#B###
-              #B#C#D#C#
-              #########
-            """.trimIndent().splitToSequence("\n")
-        )*/
 
     fun getEndState(state: Map<CP, Char>): Map<CP, Char> {
         val roomCellsByPod = getRoomCellsByPod(state)
@@ -174,23 +155,35 @@ fun main() {
         ).toMap()
     }
 
+
+    // answer 1
+    val startState = textResourceReader("input/23.txt").useLines { lines -> readInput(lines) }
+    val endState = getEndState(startState)
+    println(getLeastEnergy(startState, endState))
+
+    // answer 2
     fun getAltStartState(startState: Map<CP, Char>): Map<CP, Char> =
         startState +
-            sequenceOf("DCBA", "DBAC")
-                .flatMapIndexed { r, str ->
-                    str.mapIndexed { c, char -> (r to c) to char }
-                }
-                .map { (cell, char) ->
-                    val (r, c) = cell
-                    (r + 3 to  c * 2 + 3) to char
-                }
-                .toMap() +
-            startState.keys.asSequence()
-                .filter { (r, _) -> r == 3 }
-                .map { (r, c) -> (r + 2 to c) to startState[r to c]!! }
-                .toMap()
+                sequenceOf("DCBA", "DBAC")
+                    .flatMapIndexed { r, str ->
+                        str.mapIndexed { c, char -> (r to c) to char }
+                    }
+                    .map { (cell, char) ->
+                        val (r, c) = cell
+                        (r + 3 to  c * 2 + 3) to char
+                    }
+                    .toMap() +
+                startState.keys.asSequence()
+                    .filter { (r, _) -> r == 3 }
+                    .map { (r, c) -> (r + 2 to c) to startState[r to c]!! }
+                    .toMap()
 
     val altStateState = getAltStartState(startState)
     val altEndState = getEndState(altStateState)
     println(getLeastEnergy(altStateState, altEndState))
 }
+
+/** output
+13455
+43567
+*/
