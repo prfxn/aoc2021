@@ -4,6 +4,7 @@ import java.io.Reader
 import java.lang.RuntimeException
 import java.nio.charset.Charset
 import java.util.PriorityQueue
+import kotlin.math.ceil
 
 fun textResourceReader(name: String, charset: Charset = Charsets.UTF_8): Reader =
     requireNotNull(
@@ -96,3 +97,5 @@ class PriorityMap<K, V> private constructor(private val pq: PriorityQueue<Pair<K
             else pq.remove()
         }.last()
 }
+
+fun Float.toCeilInt(): Int = ceil(this).toInt()
